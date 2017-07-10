@@ -8,7 +8,7 @@ blacklist = [
     'kvstore_dist.h', 'mach/clock.h', 'mach/mach.h',
     'malloc.h', 'mkl.h', 'mkl_cblas.h', 'mkl_vsl.h', 'mkl_vsl_functions.h',
     'nvml.h', 'opencv2/opencv.hpp', 'sys/stat.h', 'sys/types.h', 'cuda.h', 'cuda_fp16.h',
-    'omp.h'
+    'omp.h', 'thrust/device_vector.h'
 ]
 minimum = int(sys.argv[6]) if len(sys.argv) > 4 else 0
 android = int(sys.argv[7]) if len(sys.argv) > 5 else 0
@@ -101,7 +101,7 @@ def expand(x, pending, stage):
             if (h not in blacklist and
                 h not in sysheaders and
                 'mkl' not in h and
-                'nnpack' not in h): sysheaders.append(h)
+                'nnpack' not in h and not h.endswith('.cuh')): sysheaders.append(h)
         else:
             expand(source, pending + [x], stage)
     print >>out, "//===== EXPANDED: %s =====\n" %x
@@ -129,15 +129,12 @@ print >>f, '''
 #include <mach/clock.h>
 #include <mach/mach.h>
 #endif
-
 #if !defined(__WIN32__)
 #include <sys/stat.h>
 #include <sys/types.h>
-
 #if !defined(__ANDROID__) && (!defined(MSHADOW_USE_SSE) || MSHADOW_USE_SSE == 1)
 #include <emmintrin.h>
 #endif
-
 #endif
 '''
 
@@ -156,5 +153,3 @@ print >>f, out.getvalue()
 for x in sources:
     if x not in history and not x.endswith('.o'):
         print 'Not processed:', x
-
-
