@@ -68,3 +68,8 @@
 #include "src/c_api/c_api_symbolic.cc"
 #include "src/c_api/c_api_ndarray.cc"
 #include "src/c_api/c_api_error.cc"
+
+#include "src/operator/contrib/multibox_detection.cc"
+#include "src/operator/contrib/multibox_prior.cc"
+#include "src/operator/contrib/multibox_target.cc"
+#include "src/operator/contrib/proposal.cc"

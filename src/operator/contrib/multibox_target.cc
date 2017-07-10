@@ -35,16 +35,16 @@ inline void AssignLocTargets(const DType *anchor, const DType *l, DType *dst,
   *(dst+3) = DType(std::log(gh / ah) / vh);
 }
 
-struct SortElemDescend {
+struct SortElemDescend2 {
   float value;
   int index;
 
-  SortElemDescend(float v, int i) {
+  SortElemDescend2(float v, int i) {
     value = v;
     index = i;
   }
 
-  bool operator<(const SortElemDescend &other) const {
+  bool operator<(const SortElemDescend2 &other) const {
     return value > other.value;
   }
 };
@@ -169,7 +169,7 @@ inline void MultiBoxTargetForward(const Tensor<cpu, 2, DType> &loc_target,
         }
         if (num_negative > 0) {
           // use negative mining, pick up "best" negative samples
-          std::vector<SortElemDescend> temp;
+          std::vector<SortElemDescend2> temp;
           temp.reserve(num_anchors - num_positive);
           for (int j = 0; j < num_anchors; ++j) {
             if (anchor_flags[j] == 1) {
@@ -209,7 +209,7 @@ inline void MultiBoxTargetForward(const Tensor<cpu, 2, DType> &loc_target,
               }
               DType prob = std::exp(p_cls_preds[j] - max_val) / sum;
               // loss should be -log(x), but value does not matter, skip log
-              temp.push_back(SortElemDescend(-prob, j));
+              temp.push_back(SortElemDescend2(-prob, j));
             }
           }  // end iterate anchors
 
