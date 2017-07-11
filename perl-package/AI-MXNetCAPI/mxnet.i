@@ -84,10 +84,9 @@ static void KVStoreServer_callback(int head, const char *body, void* callback)
 {
     {
         dSP;
-        STRLEN len;
         PUSHMARK(SP);
         XPUSHs(sv_2mortal(newSViv(head)));
-        XPUSHs(sv_2mortal(newSVpv(body, len)));
+        XPUSHs(sv_2mortal(newSVpv(body, 0)));
         PUTBACK;
         call_sv((SV*)callback, G_DISCARD);
     }
@@ -97,9 +96,8 @@ static void ExecutorMonitor_callback(const char* name, NDArrayHandle handle, voi
 {
     {
         dSP;
-        STRLEN len;
         PUSHMARK(SP);
-        XPUSHs(sv_2mortal(newSVpv(name, len)));
+        XPUSHs(sv_2mortal(newSVpv(name, 0)));
         XPUSHs(SWIG_NewPointerObj(SWIG_as_voidptr(handle), SWIGTYPE_p_MXNDArray, 0));
         PUTBACK;
         call_sv((SV*)callback, G_DISCARD);
@@ -435,7 +433,7 @@ int MXNDArrayGetShape(NDArrayHandle handle,
  * \return 0 when success, -1 when failure happens
  */
 int MXNDArrayGetData(NDArrayHandle handle,
-                               mx_float **out_pdata);
+                                void **out_pdata);
 /*!
  * \brief get the type of the data in NDArray
  * \param handle the handle to the narray

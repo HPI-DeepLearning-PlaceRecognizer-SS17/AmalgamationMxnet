@@ -434,7 +434,7 @@ if(USE_PLUGINS_WARPCTC)
   target_link_libraries(mxnet optimized ${WARPCTC_LIB_RELEASE})
 endif()
 
-target_link_libraries(mxnet dmlccore)
+target_link_libraries(mxnet dmlc)
 
 if(MSVC AND USE_MXNET_LIB_NAMING)
   set_target_properties(mxnet PROPERTIES OUTPUT_NAME "libmxnet")
@@ -502,4 +502,3 @@ endif()
 set(LINT_DIRS include src scripts python)
 add_custom_target(mxnet_lint COMMAND ${CMAKE_COMMAND} -DMSVC=${MSVC} -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE} -DLINT_DIRS=${LINT_DIRS} -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR} -DPROJECT_NAME=mxnet -P ${PROJECT_SOURCE_DIR}/dmlc-core/cmake/lint.cmake)
 
-D_GLIBCXX_USE_CXX11_ABI=1

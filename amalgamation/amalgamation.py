@@ -8,15 +8,11 @@ blacklist = [
     'kvstore_dist.h', 'mach/clock.h', 'mach/mach.h',
     'malloc.h', 'mkl.h', 'mkl_cblas.h', 'mkl_vsl.h', 'mkl_vsl_functions.h',
     'nvml.h', 'opencv2/opencv.hpp', 'sys/stat.h', 'sys/types.h', 'cuda.h', 'cuda_fp16.h',
-    'omp.h'
-]
-minimum = int(sys.argv[6]) if len(sys.argv) > 4 else 0
-android = int(sys.argv[7]) if len(sys.argv) > 5 else 0
-openmp = int(sys.argv[8]) if len(sys.argv) > 6 else 0
+    'omp.h', 'execinfo.h', 'packet/sse-inl.h', 'emmintrin.h', 'thrust/device_vector.h'
+    ]
 
-if android != 0:
-    blacklist.append('execinfo.h')
-    blacklist.append('packet/sse-inl.h')
+minimum = int(sys.argv[6]) if len(sys.argv) > 5 else 0
+android = int(sys.argv[7]) if len(sys.argv) > 6 else 0
 
 def pprint(lst):
     for item in lst:
@@ -26,18 +22,16 @@ def get_sources(def_file):
     sources = []
     files = []
     visited = set()
-    mxnet_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+    mxnet_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
     for line in open(def_file):
         files = files + line.strip().split(' ')
 
     for f in files:
         f = f.strip()
         if not f or f.endswith('.o:') or f == '\\': continue
+        f = os.path.realpath(f)
         fn = os.path.relpath(f)
-        if fn.startswith("../nnvm/include/dmlc/"):
-            name = fn.split('/')[-1]
-            fn = "../dmlc-core/include/dmlc/" + name
-        if os.path.abspath(f).startswith(mxnet_path) and fn not in visited:
+        if f.startswith(mxnet_path) and fn not in visited:
             sources.append(fn)
             visited.add(fn)
     return sources
@@ -59,10 +53,7 @@ def find_source(name, start, stage):
     if not candidates: return ''
     if len(candidates) == 1: return candidates[0]
     for x in candidates:
-        try:
-            if x.split('/')[1] == start.split('/')[1]: return x
-        except IndexError:
-            import pdb; pdb.set_trace() 
+        if x.split('/')[1] == start.split('/')[1]: return x
     return ''
 
 
@@ -74,6 +65,8 @@ history = set([])
 out = StringIO.StringIO()
 
 
+
+
 def expand(x, pending, stage):
     if x in history and x not in ['mshadow/mshadow/expr_scalar-inl.h']: # MULTIPLE includes
         return
@@ -82,7 +75,10 @@ def expand(x, pending, stage):
         #print 'loop found: %s in ' % x, pending
         return
 
-    print >>out, "//===== EXPANDING: %s =====\n" %x
+    whtspace = '  '*expand.treeDepth
+    expand.fileCount+=1
+    print >>out, "//=====[%3d] STAGE:%4s %sEXPANDING: %s =====\n" % (expand.fileCount, stage, whtspace, x)
+    print        "//=====[%3d] STAGE:%4s %sEXPANDING: %s        " % (expand.fileCount, stage, whtspace, x)
     for line in open(x):
         if line.find('#include') < 0:
             out.write(line)
@@ -101,28 +97,39 @@ def expand(x, pending, stage):
             if (h not in blacklist and
                 h not in sysheaders and
                 'mkl' not in h and
-                'nnpack' not in h): sysheaders.append(h)
+                'nnpack' not in h and
+                not h.endswith('.cuh')): sysheaders.append(h)
         else:
+            expand.treeDepth+=1
             expand(source, pending + [x], stage)
-    print >>out, "//===== EXPANDED: %s =====\n" %x
+            expand.treeDepth-=1
+    print >>out, "//===== EXPANDED  : %s =====\n" %x
     history.add(x)
 
+
+# Vars to keep track of number of files expanded.
+# Used in printing informative comments.
+expand.treeDepth = 0
+expand.fileCount = 0
+
+# Expand the stages
 expand(sys.argv[2], [], "dmlc")
 expand(sys.argv[3], [], "nnvm")
 expand(sys.argv[4], [], "src")
 
-
-
+# Write to amalgamation file
 f = open(sys.argv[5], 'wb')
 
 if minimum != 0:
+    sysheaders.remove('cblas.h')
     print >>f, "#define MSHADOW_STAND_ALONE 1"
     print >>f, "#define MSHADOW_USE_SSE 0"
     print >>f, "#define MSHADOW_USE_CBLAS 0"
 elif android != 0:
     print >>f, "#define MSHADOW_USE_SSE 0"
-    print >>f, "#include <cstdio>"
+    print >>f, "#include <cstdio>"   
     print >>f, "#define fopen64 std::fopen"
+
 
 print >>f, '''
 #if defined(__MACH__)
@@ -143,9 +150,6 @@ print >>f, '''
 
 if minimum != 0 and android != 0 and 'complex.h' not in sysheaders:
     sysheaders.append('complex.h')
-
-if openmp != 0:
-    sysheaders.append('omp.h')
 
 for k in sorted(sysheaders):
     print >>f, "#include <%s>" % k

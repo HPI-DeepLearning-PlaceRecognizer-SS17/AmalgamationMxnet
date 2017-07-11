@@ -78,6 +78,16 @@ MXNet requires R-version to be 3.2.0 and above. If you are running an earlier ve
 To install MXNet for R:
 
 ```bash
+    # Clone mxnet repository. In terminal, run the commands WITHOUT "sudo"
+    git clone https://github.com/dmlc/mxnet.git ~/mxnet --recursive
+
+    cd ~/mxnet
+    cp make/config.mk .
+    # If building with GPU, add configurations to config.mk file:
+    echo "USE_CUDA=1" >>config.mk
+    echo "USE_CUDA_PATH=/usr/local/cuda" >>config.mk
+    echo "USE_CUDNN=1" >>config.mk
+
     cd ~/mxnet/setup-utils
     bash install-mxnet-ubuntu-r.sh
 ```
@@ -276,7 +286,7 @@ To install the MXNet Scala package into your local Maven repository, run the fol
 ```
 ### Install the MXNet Package for Perl
 
-Before you build MXNet for Scala from source code, you must complete [building the shared library](#build-the-shared-library). After you build the shared library, run the following command from the MXNet source root directory to build the MXNet Scala package:
+Before you build MXNet for Perl from source code, you must complete [building the shared library](#build-the-shared-library). After you build the shared library, run the following command from the MXNet source root directory to build the MXNet Perl package:
 
 ```bash
     sudo apt-get install libmouse-perl pdl cpanminus swig libgraphviz-perl

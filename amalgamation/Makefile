@@ -3,7 +3,7 @@ export MXNET_ROOT=`pwd`/..
 export OPENBLAS_ROOT=/home/martin/Desktop/openBlas
 
 # set this to root folder of ndk toolchain
-export NDK_TOOLCHAIN_ROOT=/home/martin/Desktop/mytoolchain
+export NDK_TOOLCHAIN_ROOT=/home/martin/Desktop/myToolchain
 
 # Whether use minimum build without blas and SSE, this will make the library super slow
 ifndef MIN
@@ -30,7 +30,7 @@ endif
 
 DEFS+=-DMSHADOW_USE_CUDA=0 -DMSHADOW_USE_MKL=0 -DMSHADOW_RABIT_PS=0 -DMSHADOW_DIST_PS=0 -DMSHADOW_FORCE_STREAM -DMXNET_PREDICT_ONLY=1 -DDMLC_LOG_STACK_TRACE=0 -DMXNET_USE_OPENCV=0
 CFLAGS=-std=c++11 -Wno-unknown-pragmas -Wall -O3 -funroll-loops $(DEFS)
-CFLAGS += -I${MXNET_ROOT}/ -I${MXNET_ROOT}/mshadow/ -I${MXNET_ROOT}/dmlc-core/include -I${MXNET_ROOT}/nnvm -I${MXNET_ROOT}/nnvm/include -I${MXNET_ROOT}/include -I${OPENBLAS_ROOT} -I${OPENBLAS_ROOT}/include -D__MIN__=$(MIN)
+CFLAGS += -I${MXNET_ROOT}/ -I${MXNET_ROOT}/mshadow/ -I${MXNET_ROOT}/dmlc-core/include -I${MXNET_ROOT}/nnvm -I${MXNET_ROOT}/nnvm/include -I${MXNET_ROOT}/include -I${OPENBLAS_ROOT} -I${OPENBLAS_ROOT}/include -D__MIN__=$(MIN) -v
 
 # CFLAGS += -g -O0 -DDMLC_LOG_FATAL_THROW=0
 
@@ -101,7 +101,7 @@ ifneq ($(ANDROID), 1)
     android:
 else
     CFLAGS+=  -mhard-float -D_NDK_MATH_NO_SOFTFP=1 -O3
-    LDFLAGS+=  -Wl,--no-warn-mismatch -lm_hard
+    LDFLAGS+=  -Wl,--no-warn-mismatch 
     android: jni_libmxnet_predict.so
 endif
 

@@ -303,6 +303,10 @@ struct DataType<uint8_t> {
 template<>
 struct DataType<int32_t> {
   static const int kFlag = kInt32;
+#if (MSHADOW_USE_CUDA && MSHADOW_USE_CUDNN == 1 && CUDNN_MAJOR >= 6)
+  static const cudnnDataType_t kCudnnFlag = CUDNN_DATA_INT32;
+  typedef int32_t ScaleType;
+#endif
 };
 
 /*! \brief type enum value for default real type */
@@ -671,11 +675,46 @@ struct minimum {
                   "floating point types not uint8"; \
     break;                                          \
   case mshadow::kInt32:                             \
-    LOG(FATAL) << "This operation only support "      \
-                  "floating point types, not int32";  \
-    break;                                            \
-  default:                                            \
-    LOG(FATAL) << "Unknown type enum " << type;       \
+    LOG(FATAL) << "This operation only support "    \
+                  "floating point types, not int32";\
+    break;                                          \
+  default:                                          \
+    LOG(FATAL) << "Unknown type enum " << type;     \
+  }
+
+#define MSHADOW_REAL_TYPE_SWITCH_EX(type$, DType$, DLargeType$, ...)  \
+  switch (type$) {                                  \
+  case mshadow::kFloat32:                           \
+    {                                               \
+      typedef float DType$;                         \
+      typedef float DLargeType$;                    \
+      {__VA_ARGS__}                                 \
+    }                                               \
+    break;                                          \
+  case mshadow::kFloat64:                           \
+    {                                               \
+      typedef double DType$;                        \
+      typedef double DLargeType$;                   \
+      {__VA_ARGS__}                                 \
+    }                                               \
+    break;                                          \
+  case mshadow::kFloat16:                           \
+    {                                               \
+      typedef mshadow::half::half_t DType$;         \
+      typedef float DLargeType$;                    \
+      {__VA_ARGS__}                                 \
+    }                                               \
+    break;                                          \
+  case mshadow::kUint8:                             \
+    LOG(FATAL) << "This operation only support "    \
+                  "floating point types not uint8"; \
+    break;                                          \
+  case mshadow::kInt32:                             \
+    LOG(FATAL) << "This operation only support "    \
+                  "floating point types, not int32";\
+    break;                                          \
+  default:                                          \
+    LOG(FATAL) << "Unknown type enum " << type$;    \
   }
 
 #define MSHADOW_LAYOUT_SWITCH(layout, Layout, ...)  \

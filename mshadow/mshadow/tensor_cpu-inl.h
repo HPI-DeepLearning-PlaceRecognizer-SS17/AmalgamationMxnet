@@ -28,7 +28,8 @@ inline void SetDevice<cpu>(int devid) {
 }
 template<>
 inline Stream<cpu> *NewStream<cpu>(bool create_blas_handle,
-                                   bool create_dnn_handle) {
+                                   bool create_dnn_handle,
+                                   int dev_id) {
   return new Stream<cpu>();
 }
 template<>
@@ -210,7 +211,7 @@ inline void MapReduceKeepLowest(TRValue<R, cpu, 1, DType> *dst,
       ::Check(exp.self()).FlatTo2D();
   Shape<1> dshape = expr::ShapeCheck<1, R>::Check(dst->self());
   CHECK_EQ(eshape[1], dshape[0]) << "MapReduceKeepLowest::reduction dimension do not match";
-  CHECK_NE(eshape[0], 0) << "can not reduce over empty tensor";
+  CHECK_NE(eshape[0], 0U) << "can not reduce over empty tensor";
   // execution
   expr::Plan<R, DType> dplan = MakePlan(dst->self());
   expr::Plan<E, DType> splan = MakePlan(exp.self());
@@ -404,8 +405,12 @@ template<typename IndexType, typename DType>
 inline void AddTakeGrad(Tensor<cpu, 2, DType> dst,
                         const Tensor<cpu, 1, IndexType>& index,
                         const Tensor<cpu, 2, DType> &src) {
+  const int K = dst.shape_[0];
   for (index_t y = 0; y < index.size(0); ++y) {
-    dst[index[y]] += src[y];
+    int j = index[y];
+    if (j <= 0) j = 0;
+    else if (j >= K) j = K - 1;
+    dst[j] += src[y];
   }
 }
 

@@ -376,7 +376,7 @@ inline void MultiBoxTargetForward(const Tensor<gpu, 2, DType> &loc_target,
     CHECK_GT(negative_mining_thresh, 0);
     temp_space[4] = 0;
     DType *buffer = temp_space[4].dptr_;
-    cuda::NegativeMining<DType><<<num_batches, num_threads / 10>>>(overlaps,
+    cuda::NegativeMining<DType><<<num_batches, num_threads>>>(overlaps,
       cls_preds.dptr_, anchor_flags, buffer, negative_mining_ratio,
       negative_mining_thresh, minimum_negative_samples,
       num_anchors, num_labels, num_classes);

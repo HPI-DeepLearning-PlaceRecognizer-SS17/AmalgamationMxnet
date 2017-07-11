@@ -1,5 +1,4 @@
 #include <jni.h>
-//#include "/home/martin/Desktop/Untitled/mytoolchain/sysroot/usr/include/jni.h"
 #include "org_dmlc_mxnet_Predictor.h"
 
 #include "../mxnet_predict-all.cc"
